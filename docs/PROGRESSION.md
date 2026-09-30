@@ -1,12 +1,17 @@
 # From 70.9M to 100.7M: how the desert search evolved
 
-The spreadsheet's desert record was **70,927,696 blocks²**. About 4 h 45 min after starting, an 8-GPU fleet
-found **100,674,560**. Two kinds of progress got it there. Pipeline changes on the CPU raised the rate of
-≥ 60M finds per core-second ~100×, from 0.5 to 52 per 10k core-seconds. The GPU port then gave ~25× more
-per dollar, from 58 gated seeds/s at $0.20/h to ~9,000/s at $1.26/h.
+The spreadsheet's desert record was **70,927,696 blocks²**. Work on deserts began at 21:16 UTC on
+29 September, right after the dripstone search. Almost all of the next four hours went into building and
+optimizing the pipeline on one to three rented boxes. At 01:40 UTC the final GPU build went out, and an
+8-GPU fleet came online over the next 15 minutes. At 01:59, one of the first boxes running that build found
+**100,674,560**.
+
+Two kinds of progress got it there. Pipeline changes on the CPU raised the rate of ≥ 60M finds per
+core-second ~100×, from 0.5 to 52 per 10k core-seconds. The GPU port then gave ~25× more per dollar, from
+58 gated seeds/s at $0.20/h to ~9,000/s at $1.26/h for the full fleet.
 
 This document follows the order things actually happened. Each step names the evidence that suggested it
-and the measured effect. Times are CDT on 2026-09-29.
+and the measured effect. Times are UTC, 29–30 September 2026.
 
 ![Largest verified desert over the session](img/timeline.png)
 
@@ -27,7 +32,7 @@ difference was MC-Measure's **river bridging**: a river is crossed, not counted,
 it would be desert. The standalone flood reproduces this rule, and at step 1 it matches MC-Measure cell for
 cell on both the old record and the 100M find (`make check`).
 
-## 1. Anatomy of a desert (16:16–17:05)
+## 1. Anatomy of a desert (21:16–22:05)
 
 **Surface lookup without the tree.** At Y=256 the depth parameter is always negative, because the terrain
 offset never exceeds ~1.4. Every surface biome therefore pays the same depth penalty, and the winner is
@@ -49,7 +54,7 @@ Evaluated on a 32-quart grid, it becomes a cheap desert-probability map: the **p
 
 ![The 100.67M desert and its surroundings](img/record_map.png)
 
-## 2. CPU pipeline, v2 → v8 (17:05–18:50)
+## 2. CPU pipeline, v2 → v8 (22:05–23:50)
 
 v2 used the dripstone design with desert features: temperature gates and a logistic site score (AUC 0.87,
 with erosion and continentalness weights), then step-8 floods. In 10 laptop-minutes the best was 57.6M. The
@@ -66,7 +71,7 @@ of the tail, not just the speed.** I rented one 64-thread EPYC box as a testbed.
 | v6 | phase ≤ 0.10, amp ≥ 0.70, exact floods only on the top-2 proxy components | seed bests nearly always came from proxy rank 1–2 | 159 / 50 (1.5×) |
 | v8 | hot-zone mode (below) | zone study | 179 / 52, and 2.4× at ≥ 65M |
 
-v3 beat the record within 5 minutes: **72,691,456** at 17:16, an hour after starting. v7's component-skip
+v3 beat the record within 5 minutes: **72,691,456** at 22:16, an hour after desert work began. v7's component-skip
 code scanned the whole 1M-cell window after every proxy flood and briefly made things slower. Scanning only
 the component's bounding box fixed it.
 
@@ -83,7 +88,7 @@ logic: no desert fills more than ~41% of its hot zone. A 100M desert therefore n
 
 At v8, the fitted tail put 100M at 28–305 box-hours on CPU. That was reachable, but it argued for a GPU.
 
-## 3. GPU port (18:50–20:10)
+## 3. GPU port (23:50–01:10)
 
 The approach was to profile, move the biggest stage to the GPU, and repeat. All GPU stages have CPU
 cross-checks (`check=1`, `gpucheck`, `gscancheck`).
@@ -96,8 +101,8 @@ cross-checks (`check=1`, `gpucheck`, `gscancheck`).
    - per-cell 64-bit divisions, replaced by lattice coordinates the CPU precomputes exactly;
    - a runtime-indexed gradient table that spilled to local memory, replaced by branch-free gradients.
 
-   Throughput went from 133M to 554M cells/s, and the box to 360 seeds/s. **92,868,016** arrived at 19:17.
-3. **You spotted a false negative.** A candidate logged at 2.65M sat in a visibly huge desert. The exact
+   Throughput went from 133M to 554M cells/s, and the box to 360 seeds/s. **92,868,016** arrived at 00:17.
+3. **A false negative.** A candidate logged at only 2.65M turned out, when its seed was inspected on a map, to sit in a huge desert. The exact
    flood had started on a component's edge cell, next to a detached pocket. The fix starts from interior
    cells nearest the centroid, with retries until the result is ≥ 0.6× the proxy.
 4. **The gate had a hidden recall bug.** A calibration mode printed the cheap 256² pre-gate and the full
@@ -113,7 +118,7 @@ cross-checks (`check=1`, `gpucheck`, `gscancheck`).
    the small ones, and `hot_min` rose to 180M. The hot-zone plot shows that loses nothing near 100M. Result:
    +35% on the CPU-bound box, **491 seeds/s**.
 
-## 4. Scaling out (20:00–21:00)
+## 4. Scaling out (01:00–02:00)
 
 **Surprise: the testbed had a V100.** Its gate ran 2.4× faster than the A4000 even though vast lists it at
 fewer FLOPS. The kernels are bound by shared memory, so SM count × clock predicts throughput (~9.6 seeds/s
@@ -148,9 +153,9 @@ Final fleet: 8 boxes, ~9,000 gated seeds/s, $1.26/h.
 
 ![Fleet](img/fleet.png)
 
-**100,674,560** was verified at 20:59:51, about 20 minutes after the eighth box came up. The step-4 flood
-had read it as 95.2M, so the verify threshold of 80M left plenty of margin. MC-Measure on the laptop,
-started from a second point, gave the same number.
+**100,674,560** was verified at 01:59:51 by a V100 box, 20 minutes after the final build went out and a
+few minutes after the eighth box came online. The step-4 flood had read it as 95.2M, so the verify threshold
+of 80M left plenty of margin. MC-Measure on the laptop, started from a second point, gave the same number.
 
 ![Final tail](img/tail.png)
 
@@ -170,7 +175,8 @@ started from a second point, gave the same number.
 
 | Quantity | Value |
 |---|---|
-| Session time to 100M | ~4 h 45 min (16:16 → 20:59 CDT) |
+| Start of desert work to the 100M find | 4 h 44 min (21:16 → 01:59 UTC), almost all of it development |
+| Final build running before the find | 20 min (from 01:40 UTC; 3 boxes at first, 8 from ~01:55) |
 | Gated seeds per ≥ 100M desert | ~4.6×10⁷ (2σ: 1.5×10⁷ – 3.3×10⁸), e-fold 3.0M above 85M |
 | Verified deserts ≥ 75M / ≥ 90M | 222 / 15 (`results/desert_finds.jsonl`) |
 | Gate pass rate | ~1 in 13,000 seeds (phase ≤ 0.06, pre-gate, amplitude ≥ 0.70) |
