@@ -8,5 +8,4 @@
 
 Algorithmic ideas adapted from [COMMISSION](https://github.com/MinecraftAtHome/COMMISSION) by MinecraftAtHome:
 y-phase seed screening and scanning world translations of the periodic first noise side. No COMMISSION
-code is included. The sampler and search pipeline are shared with
-[dripstone-search](../dripstone-search) (same author).
+code is included.

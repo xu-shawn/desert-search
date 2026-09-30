@@ -1,7 +1,7 @@
 # From 70.9M to 100.7M: how the desert search evolved
 
 The spreadsheet's desert record was **70,927,696 blocks²**. Work on deserts began at 21:16 UTC on
-29 September, right after the dripstone search. Almost all of the next four hours went into building and
+29 September. Almost all of the next four hours went into building and
 optimizing the pipeline on one to three rented boxes. At 01:40 UTC the final GPU build went out, and an
 8-GPU fleet came online over the next 15 minutes. At 01:59, one of the first boxes running that build found
 **100,674,560**.
@@ -19,8 +19,7 @@ and the measured effect. Times are UTC, 29–30 September 2026.
 
 ## 0. Starting point
 
-The desert work started right after the dripstone search (repo `dripstone-search`)
-reached 105M, so it inherited several pieces:
+The work started from pieces built earlier for a whole-world biome search:
 
 - a bit-exact climate sampler (`standalone.hpp`);
 - the periodic side-A world scan;
@@ -56,7 +55,7 @@ Evaluated on a 32-quart grid, it becomes a cheap desert-probability map: the **p
 
 ## 2. CPU pipeline, v2 → v8 (22:05–23:50)
 
-v2 used the dripstone design with desert features: temperature gates and a logistic site score (AUC 0.87,
+v2 adapted that whole-world design to deserts: temperature gates and a logistic site score (AUC 0.87,
 with erosion and continentalness weights), then step-8 floods. In 10 laptop-minutes the best was 57.6M. The
 tail fit bent downward, putting 100M somewhere between months and never. The conclusion: **change the shape
 of the tail, not just the speed.** I rented one 64-thread EPYC box as a testbed. Every version then ran for
@@ -64,7 +63,7 @@ of the tail, not just the speed.** I rented one 64-thread EPYC box as a testbed.
 
 | Version | Change | Why | ≥ 55M / ≥ 60M per 10k core-s |
 |---|---|---|---|
-| v2 | T gates + site score + step-8 floods | dripstone recipe | 6 / 0.5 |
+| v2 | T gates + site score + step-8 floods | existing whole-world recipe | 6 / 0.5 |
 | v3 | proxy floods rank sites before exact floods | step-8 floods were ~95% of the cost | 21 / 1.5 (3.5×) |
 | v4 | temperature-amplitude gate | per-seed best desert tracked smoothed octave-0 T amplitude | 59 / 13 (2.8×) |
 | v5 | tighter phase and amplitude cuts | yield per core-s kept rising with both | 107 / 25 (1.8×) |

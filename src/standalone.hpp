@@ -237,54 +237,5 @@ struct Sampler {
         for(int i=0;i<6;i++) q[i]=int64_t(10000.f*values[i]);
     }
     int biome(int x,int y,int z) { int64_t q[6];climate(x,y,z,q);return classify(q); }
-    bool dripstone(int x,int y,int z,bool prefilter=true) {
-        const auto &shift=get(Shift);
-        double px=x+4.*shift.sample(x,0,z),pz=z+4.*shift.sample(z,x,0);
-        float c=get(Continentalness).sample(px,0,pz);
-        // Conservative necessary condition at y=0. A surface depth plane is
-        // at most 0.5 away, while dripstone's C starts at 0.8. See proof script.
-        if(prefilter && y==0 && c<0.2998f) return false;
-        if(!prefilter) {int64_t q[6];finish(px,pz,y,c,q);return classify(q)==174;}
-        float h=get(Humidity).sample(px,0,pz);
-        int64_t qc=int64_t(10000.f*c),qh=int64_t(10000.f*h);
-        int64_t dc=interval_distance(qc,8000,10000),dh=interval_distance(qh,-10000,10000);
-        int64_t lc=interval_distance(qc,-10000,10000),lh=interval_distance(qh,7000,10000);
-        // Lush and dripstone have identical T/E/D/W intervals. Lush precedes
-        // dripstone in the parameter tree and wins their equal-distance ties.
-        if(lc*lc+lh*lh <= dc*dc+dh*dh) return false;
-        float e=get(Erosion).sample(px,0,pz),w=get(Weirdness).sample(px,0,pz);
-        float v[]={c,e,-(std::fabs(std::fabs(w)-0.6666667f)-0.33333334f)*3.f,w};
-        double off=spline(0,v)+0.015f;
-        float d=1.-(y*4)/128.-83./160.+off;
-        int64_t qe=int64_t(10000.f*e),qw=int64_t(10000.f*w),qd=int64_t(10000.f*d);
-        // In this interior, no other biome has zero non-temperature distance.
-        // All biomes' temperature intervals are subsets of dripstone's [-1,1].
-        if(qc>=8000 && qc<=10000 && qh>=-10000 && qh<7000 &&
-           qe>=-10000 && qe<=10000 && qw>=-10000 && qw<=10000 && qd>=2000 && qd<=9000)
-            return true;
-        {
-            // Exact fast accept without temperature. Every surface entry has depth exactly 0 or
-            // 10000, and T/H/E/W intervals inside [-1,1], so each costs at least
-            // min(qd^2,(qd-10000)^2) plus dripstone's own T/H/E/W terms. The only other
-            // non-surface entries are lush (handled above), deep dark and sulfur caves, whose T
-            // and H intervals equal dripstone's; compare their remaining terms exactly.
-            auto sq=[](int64_t v){return v*v;};
-            int64_t own=sq(interval_distance(qc,8000,10000))+sq(interval_distance(qd,2000,9000))
-                +sq(interval_distance(qh,-10000,10000))+sq(interval_distance(qe,-10000,10000))
-                +sq(interval_distance(qw,-10000,10000));
-            int64_t surface=std::min(sq(qd),sq(qd-10000));
-            int64_t dark=sq(interval_distance(qc,-10000,10000))+sq(interval_distance(qe,-10000,-3750))
-                +sq(qd-11000)+sq(interval_distance(qw,-10000,10000))+sq(interval_distance(qh,-10000,10000));
-            int64_t sulfur=sq(interval_distance(qc,-1900,5500))+sq(interval_distance(qe,4500,10000))
-                +sq(interval_distance(qd,2000,9000))+sq(interval_distance(qw,-11000,-8500))
-                +sq(interval_distance(qh,-10000,10000));
-            if(own<surface && own<dark && own<sulfur) return true;
-        }
-        float t=get(Temperature).sample(px,0,pz);
-        int64_t q[]={int64_t(10000.f*t),qh,qc,qe,qd,qw};
-        bool tie=false;
-        if(closer_competitor(0,0,q,distance(50,q),tie)) return false;
-        return !tie || classify(q)==174;
-    }
 };
 }
