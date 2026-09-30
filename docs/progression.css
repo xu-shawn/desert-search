@@ -1,0 +1,24 @@
+/* Print stylesheet for PROGRESSION.pdf (docs/build_pdf.sh: pandoc -> HTML -> headless Chromium). */
+@page { size: Letter; margin: 17mm 17mm 18mm 17mm;
+        @bottom-center { content: counter(page); font: 8pt Inter, sans-serif; color: #52514e; } }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: Inter, "Noto Sans", "DejaVu Sans", sans-serif; font-size: 9.8pt; line-height: 1.5; color: #0b0b0b;
+       max-width: none; margin: 0; padding: 0; background: #ffffff; font-feature-settings: "tnum" 0, "cv11" 1; }
+h1 { font-size: 21pt; line-height: 1.2; margin: 0 0 6pt; letter-spacing: -0.01em; }
+h2 { font-size: 13.5pt; margin: 20pt 0 6pt; padding-top: 8pt; border-top: 1px solid #e4e3df; break-after: avoid; }
+h3 { font-size: 11pt; margin: 14pt 0 4pt; break-after: avoid; }
+p { margin: 0 0 7pt; orphans: 3; widows: 3; }
+a { color: #1f5fae; text-decoration: none; }
+strong { font-weight: 650; }
+hr { display: none; }
+ul, ol { margin: 0 0 8pt; padding-left: 16pt; }
+li { margin: 0 0 3pt; }
+code { font-family: "Noto Sans Mono", "DejaVu Sans Mono", monospace; font-size: 8.6pt; background: #f3f2ee; padding: 0.5pt 3pt; border-radius: 3px; }
+figure { margin: 10pt 0 12pt; break-inside: avoid; text-align: center; }
+figure img { max-width: 94%; max-height: 104mm; }
+figcaption { font-size: 8.5pt; color: #52514e; margin-top: 3pt; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0 12pt; font-size: 8.8pt; break-inside: avoid; }
+th { text-align: left; font-weight: 650; border-bottom: 1.5px solid #0b0b0b; padding: 4pt 6pt; }
+td { border-bottom: 1px solid #e4e3df; padding: 3.5pt 6pt; vertical-align: top; }
+tr:nth-child(even) td { background: #fafaf8; }
+.lede { font-size: 10.5pt; color: #2b2a28; }

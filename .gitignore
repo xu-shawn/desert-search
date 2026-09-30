@@ -1,0 +1,7 @@
+bin/
+build/
+runs/
+dist.tgz
+deploy/boxes.txt
+__pycache__/
+*.o
