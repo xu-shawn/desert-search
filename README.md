@@ -100,7 +100,7 @@ counted when the biome without the river would be desert, as in MC-Measure.
    the ±30M world. Score = T + 0.25·C + 0.41·E, keeping the best candidate per 5,000-quart bucket.
    Bit-exact with the CPU path.
 3. **Hot zones** (CPU). Flood T ≥ 0.55 around each site, at step 256 then 128. Only zones ≥ 180M blocks²
-   continue. The largest deserts fill at most ~55% of their hot zone, and hot-zone area is the strongest
+   continue. No desert fills more than ~41% of its hot zone (so 100M needs ≳ 240M of T ≥ 0.55), and hot-zone area is the strongest
    predictor of size.
 4. **Proxy** (GPU). A table of P(desert | low-octave C, E) is evaluated on every step-32 cell of each big hot
    zone's bounding box. The CPU labels connected components and ranks them.
